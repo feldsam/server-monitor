@@ -6,6 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/feldsam/server-monitor.git"
+  },
   "keywords": [
     "server",
     "monitoring"
