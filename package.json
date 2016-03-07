@@ -1,6 +1,6 @@
 {
   "name": "server-monitor",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Monitor multiple servers and reports outages by email/sms",
   "main": "index.js",
   "scripts": {

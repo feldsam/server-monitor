@@ -68,13 +68,41 @@ config.json
 usage in script
 
 ```
-var momitor = require("server-monitor").monitor;
+require("shelljs/global");
+var monitor = require("server-monitor").monitor;
 var config = require("./config");
 
 monitor(config, function(err, data){
-	if(err) return console.log(err);
+	if(err){
+		console.log(err);
+		process.exit(1);
+	}
 	
 	console.log(data);
 	// do what you want, send mail or send sms?
+	
+	// example with gammu
+	if(Object.keys(data.errors).length > 0){
+		for(k in data.errors){
+			var error = data.errors[k];
+			
+			if(error.count == 1) exec('echo "' + error.message + '" | gammu sendsms TEXT +420773123456', {silent: true});
+		}
+	}
+
+	if(Object.keys(data.cleared).length > 0){
+                for(k in data.cleared){
+			var clear = data.cleared[k];
+			exec('echo "Resolved: ' + clear.message + '. Count: ' + clear.count + '" | gammu sendsms TEXT +420773123456', {silent: true});
+		}
+	}
+
+	process.exit(0);
 });
+```
+
+You can add this to crontab and all is done :)
+
+```
+* * * * * /path/to/node /path/to/your/code.js
 ```
