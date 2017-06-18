@@ -1,12 +1,13 @@
 var fs = require("fs");
 var http = require("http");
+var https = require("https");
 var async = require("async");
 	
 function main(config, callback){
 	var tasks = [];
 	
 	config.forEach(function(mon){
-		if(mon.service == "http"){
+		if(mon.service == "http" || mon.service == "https"){
 			tasks.push(function(callback){
 				monitorHttp(mon, function(result, data){	
 					if(result === false){
@@ -99,31 +100,42 @@ function monitorHttp(mon, callback){
 	};
 	
 	var timeout = false;
-	
-	var req = http.request(options, function(res){
-		if(res.statusCode != 200){
-			return callback(false, {"responseCode": res.statusCode, "host": mon.host});
-		}		
-	
-		if(mon.checkKeyword === undefined)
-		{
-			return callback(true, {"host": mon.host});
-		}
-	
-		var body = "";
-		
-		res.on("data", function(data){
-			body += data;
-		});
-		
-		res.on("end", function(){
-			if(body.indexOf(mon.checkKeyword) == -1){
-				return callback(false, {"checkKeyword": mon.checkKeyword, "host": mon.host});
-			}
-			
-			callback(true, {"host": mon.host});
-		});
-	});
+
+    var httpRequestCallback = function(res){
+        if(res.statusCode != 200){
+            return callback(false, {"responseCode": res.statusCode, "host": mon.host});
+        }
+
+        if(mon.checkKeyword === undefined)
+        {
+            return callback(true, {"host": mon.host});
+        }
+
+        var body = "";
+
+        res.on("data", function(data){
+            body += data;
+        });
+
+        res.on("end", function(){
+            if(body.indexOf(mon.checkKeyword) == -1){
+                return callback(false, {"checkKeyword": mon.checkKeyword, "host": mon.host});
+            }
+
+            callback(true, {"host": mon.host});
+        });
+    }
+
+	if(mon.service == "http")
+    {
+        var req = http.request(options, httpRequestCallback);
+    }
+    else if(mon.service == "https")
+    {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+        options.port = 443;
+        var req = https.request(options, httpRequestCallback);
+    }
 	
 	req.on("error", function(err){
 		if(timeout){

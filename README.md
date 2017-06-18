@@ -59,7 +59,7 @@ config.json
 	{
 		"host": "www.somedomain.tld",
 		"path": "/",
-		"service": "http",
+		"service": "https",
 		"timeout": 10
 	}
 ]
